@@ -1,4 +1,60 @@
+"use client"
+
+import StatusMessageBox from "@/components/status-message-box";
+import { ENDPOINTS } from "@/constants/endpoints";
+import { GetRequestConfig, METHODS } from "@/constants/request-config";
+import { User } from "@/types/entities";
+import { LoginPayload } from "@/types/request-payloads";
+import { ResponsePayload } from "@/types/response-payload";
+import { GetBackendEndpoint } from "@/utils/utilities";
+import { jwtDecode, JwtPayload } from "jwt-decode";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { useAuth } from "@/context/auth-context";
+
 export default function Home() {
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { login, user } = useAuth();
+  const username = useRef<HTMLInputElement>(null);
+  const password = useRef<HTMLInputElement>(null);
+
+  const navigate = useRouter();
+
+  useEffect(() => {} , [])
+
+  const Login = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if(loading) return;
+    try{
+      setLoading(true);
+      const endpoint = `${await GetBackendEndpoint()}${ENDPOINTS.authLogin}`;
+      const body: LoginPayload = {
+        username: username.current!.value,
+        password: password.current!.value
+      };
+      const rawResponse = await fetch(endpoint, GetRequestConfig(METHODS.POST, "JSON", JSON.stringify(body)));
+      const response: ResponsePayload<string> = await rawResponse.json();
+      if(response.error) throw new Error(response.message);
+      if(response.data) {
+        const userData: JwtPayload & Partial<User> = jwtDecode(response.data);
+        login(response.data, userData as User);
+      }
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if(user){
+      navigate.push("/dashboard");
+    }
+  }, [user]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -12,7 +68,7 @@ export default function Home() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border-t-4 border-yellow-400">
-          <form className="space-y-6" action="#" method="POST">
+          <form className="space-y-6" action="#" method="POST" onSubmit={Login} >
             <div>
               <label
                 htmlFor="username"
@@ -26,6 +82,7 @@ export default function Home() {
                   name="username"
                   type="text"
                   autoComplete="username"
+                  ref={username}
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
@@ -45,6 +102,7 @@ export default function Home() {
                   name="password"
                   type="password"
                   autoComplete="current-password"
+                  ref={password}
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
@@ -79,11 +137,23 @@ export default function Home() {
 
             <div>
               <button
+                aria-disabled={loading}
+                disabled={loading}
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
               >
-                Ingresar
+                {
+                  !loading ?
+                  "Ingresar"
+                  :
+                  "Cargando..."
+                }
               </button>
+              {
+                error ?
+                <StatusMessageBox message={error.message} type="error" closeError={setError} value={error}/>
+                : null
+              }
             </div>
           </form>
         </div>
