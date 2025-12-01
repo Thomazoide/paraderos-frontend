@@ -10,6 +10,7 @@ import { User, WorkOrder, VisitForm, BusStop } from "@/types/entities";
 import { ResponsePayload, ApiKeyRequestPayload } from "@/types/response-payload";
 import StatusMessageBox from "@/components/status-message-box";
 import Sidebar from "@/components/sidebar";
+import { initGoogleMaps } from "@/utils/google-maps";
 
 export default function Dashboard() {
   const { user, accessToken, loading: authLoading, logout } = useAuth();
@@ -25,8 +26,12 @@ export default function Dashboard() {
   const [apiKey, setApiKey] = useState<string | null>(null);
   
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const mapInstance = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const busStopMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const PlaceLibraryRef = useRef<typeof google.maps.places.Place>(null);
+  const AdvancedMarkerElementRef = useRef<typeof google.maps.marker.AdvancedMarkerElement>(null);
+  const PinElementRef = useRef<typeof google.maps.marker.PinElement>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -82,57 +87,69 @@ export default function Dashboard() {
 
   // Load Map
   useEffect(() => {
-    if (apiKey && !loadingData && mapRef.current && !mapInstance.current) {
-      const loadMap = async () => {
-        if (!(window as any).google) {
-          const script = document.createElement("script");
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-          script.async = true;
-          script.defer = true;
-          script.onload = initMap;
-          document.head.appendChild(script);
-        } else {
-          initMap();
+    const init = async () => {
+      if (apiKey && !loadingData && mapRef.current && !mapInstance.current) {
+        
+        initGoogleMaps(apiKey);
+
+        try {
+          const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+          const { Place } = await google.maps.importLibrary("places") as google.maps.PlacesLibrary;
+          const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+          
+          PlaceLibraryRef.current! = Place;
+          AdvancedMarkerElementRef.current = AdvancedMarkerElement;
+          PinElementRef.current = PinElement;
+
+          // Puente Alto coordinates
+          const puenteAlto = { lat: -33.6117, lng: -70.5757 };
+
+          mapInstance.current = new Map(mapRef.current, {
+            center: puenteAlto,
+            zoom: 13,
+            mapId: "DEMO_MAP_ID",
+          });
+
+          updateMarkers();
+        } catch (e) {
+          console.error("Error loading Google Maps:", e);
         }
-      };
-      loadMap();
-    }
+      }
+    };
+    init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, loadingData]);
 
-  const initMap = () => {
-    if (!mapRef.current) return;
-
-    // Santiago de Chile coordinates
-    const santiago = { lat: -33.4489, lng: -70.6693 };
-
-    mapInstance.current = new (window as any).google.maps.Map(mapRef.current, {
-      center: santiago,
-      zoom: 11,
-    });
-
-    updateMarkers();
-  };
-
   const updateMarkers = () => {
-    if (!mapInstance.current) return;
+    if (!mapInstance.current || !AdvancedMarkerElementRef.current || !PinElementRef.current) return;
 
     // Clear existing markers
-    markersRef.current.forEach((marker: any) => marker.setMap(null));
+    markersRef.current.forEach((marker) => marker.map = null);
     markersRef.current = [];
+    busStopMarkersRef.current.forEach((marker) => marker.map = null);
+    busStopMarkersRef.current = [];
 
     // Filter users type "terreno"
     const terrenoUsers = users.filter(u => u.user_type === "terreno" && u.lat && u.lng);
 
     terrenoUsers.forEach(u => {
       if (u.lat && u.lng) {
-        const marker = new (window as any).google.maps.Marker({
+        // Create a pin element with initial
+        const pin = new PinElementRef.current!({
+            glyph: u.username.substring(0, 1).toUpperCase(),
+            background: "#3B82F6", // Blue
+            borderColor: "#FFFFFF",
+            glyphColor: "#FFFFFF",
+        });
+
+        const marker = new AdvancedMarkerElementRef.current!({
           position: { lat: u.lat, lng: u.lng },
           map: mapInstance.current,
           title: u.full_name,
-          label: u.username.substring(0, 1).toUpperCase()
+          content: pin.element,
         });
         
-        const infoWindow = new (window as any).google.maps.InfoWindow({
+        const infoWindow = new google.maps.InfoWindow({
             content: `
               <div style="color: black;">
                 <h3 style="font-weight: bold;">${u.full_name}</h3>
@@ -150,14 +167,46 @@ export default function Dashboard() {
         markersRef.current.push(marker);
       }
     });
+
+    // Add Bus Stops from Backend
+    busStops.forEach(stop => {
+      // Create custom icon element for bus stop
+      const iconImg = document.createElement('img');
+      iconImg.src = "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/bus-71.png";
+      iconImg.style.width = "20px";
+      iconImg.style.height = "20px";
+
+      const marker = new AdvancedMarkerElementRef.current!({
+        position: { lat: stop.lat, lng: stop.lng },
+        map: mapInstance.current,
+        title: stop.description,
+        content: iconImg,
+      });
+
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div style="color: black;">
+            <h3 style="font-weight: bold;">${stop.codigo}</h3>
+            <p>${stop.description}</p>
+          </div>
+        `
+      });
+
+      marker.addListener("click", () => {
+        infoWindow.open(mapInstance.current, marker);
+      });
+
+      busStopMarkersRef.current.push(marker);
+    });
   };
 
-  // Update markers when users change
+  // Update markers when users or busStops change
   useEffect(() => {
     if (mapInstance.current) {
       updateMarkers();
     }
-  }, [users]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users, busStops]);
 
   if (authLoading || loadingData) {
     return (
@@ -198,7 +247,7 @@ export default function Dashboard() {
             <div key={index} className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
-                  <div className={`flex-shrink-0 rounded-md p-3 ${stat.color}`}>
+                  <div className={`shrink-0 rounded-md p-3 ${stat.color}`}>
                     {/* Icon placeholder */}
                     <div className="h-6 w-6 text-white" />
                   </div>

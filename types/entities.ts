@@ -63,6 +63,8 @@ export interface VisitForm {
     busStopId: number;
     userId: number | null;
     routeId: number | null;
+    creation_date: string;
+    completion_date: string | null;
     busStop?: BusStop;
     route: Route | null;
     user: User;
