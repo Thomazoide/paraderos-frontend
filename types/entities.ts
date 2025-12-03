@@ -31,8 +31,9 @@ export interface Departure {
 
 export interface Route {
     id: number;
-    route_points: number[];
-    route_points_visited: number[];
+    route_name: string;
+    route_points: number[]; //se guardan los ID de los paraderos que han sido agregados a la ruta
+    route_points_visited: number[]; //se agregan los ID de los paraderos que ya han sido visitadas
     completed: boolean;
     work_order_id: number | null;
     work_order: WorkOrder | null;

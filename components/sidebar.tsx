@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MapPin, FileText, ClipboardList, Menu, X, LogOut, User, Users } from "lucide-react";
+import { LayoutDashboard, MapPin, FileText, ClipboardList, Menu, X, LogOut, User, Users, Route } from "lucide-react";
 import { UserType } from "@/types/entities";
 
 interface SidebarProps {
@@ -24,6 +24,7 @@ export default function Sidebar({ fullName, userType, onLogout }: SidebarProps) 
     { name: "Registros", href: "/registros", icon: FileText, roles: ["jefatura", "oferente"] },
     { name: "Órdenes de Trabajo", href: "/ordenes", icon: ClipboardList, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Usuarios", href: "/usuarios", icon: Users, roles: ["jefatura", "oferente"] },
+    { name: "Rutas", href: "/rutas", icon: Route, roles: ["jefatura", "oferente"] }
   ];
 
   const menuItems = allMenuItems.filter(item => item.roles.includes(userType));
