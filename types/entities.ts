@@ -33,10 +33,8 @@ export interface Route {
     id: number;
     route_name: string;
     route_points: number[]; //se guardan los ID de los paraderos que han sido agregados a la ruta
-    route_points_visited: number[]; //se agregan los ID de los paraderos que ya han sido visitadas
     completed: boolean;
-    work_order_id: number | null;
-    work_order: WorkOrder | null;
+    work_orders: WorkOrder[] | null;
     visitForms: VisitForm[] | null;
 };
 
@@ -76,7 +74,8 @@ export interface WorkOrder {
     id: number;
     completada: boolean;
     creation_date: string;
-    complete_date: string;
+    complete_date: string | null;
+    stops_visited: number[] | null;
     user_id: number | null;
     route_id: number | null;
     route: Route | null;

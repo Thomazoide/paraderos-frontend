@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/sidebar";
 import CreateRouteModal from "@/components/create-route-modal";
+import RouteDetailsModal from "@/components/route-details-modal";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
@@ -22,6 +23,10 @@ export default function RoutesPage() {
     
     // Creation state
     const [isCreating, setIsCreating] = useState(false);
+    
+    // Details state
+    const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const fetchRoutes = async () => {
         setLoading(true);
@@ -62,17 +67,16 @@ export default function RoutesPage() {
     }, [accessToken, user]);
 
     useEffect(() => {
-        if (isCreating && busStops.length === 0) {
+        if ((isCreating || isDetailsOpen) && busStops.length === 0) {
             fetchBusStops();
         }
-    }, [isCreating]);
+    }, [isCreating, isDetailsOpen]);
 
     const handleCreateRoute = async (selectedIds: number[], routeName: string) => {
         try {
             const backendUrl = await GetBackendEndpoint();
             const endpoint = `${backendUrl}${ENDPOINTS.routes}`;
             const payload = JSON.stringify({
-                route_points_visited: [],
                 route_points: selectedIds,
                 route_name: routeName
             });
@@ -86,6 +90,28 @@ export default function RoutesPage() {
         } catch (err) {
             alert("Error al crear la ruta: " + (err as Error).message);
             throw err; // Re-throw to let modal know it failed
+        }
+    };
+
+    const handleUpdateRoute = async (id: number, selectedIds: number[], routeName: string) => {
+        try {
+            const backendUrl = await GetBackendEndpoint();
+            const endpoint = `${backendUrl}${ENDPOINTS.routes}`;
+            const payload = JSON.stringify({
+                id: id,
+                route_points: selectedIds,
+                route_name: routeName
+            });
+            const config = GetRequestConfig(METHODS.POST, "JSON", payload, accessToken!);
+            const response: ResponsePayload<Route> = await (await fetch(endpoint, config)).json();
+            
+            if(response.error) throw new Error(response.message);
+            
+            setIsDetailsOpen(false);
+            setSelectedRoute(null);
+            fetchRoutes(); // Refresh list
+        } catch (err) {
+            alert("Error al actualizar la ruta: " + (err as Error).message);
         }
     };
 
@@ -139,12 +165,21 @@ export default function RoutesPage() {
                                             {route.route_points.length} paraderos
                                         </p>
                                     </div>
-                                    <div className="px-4 py-4 sm:px-6">
+                                    <div className="px-4 py-4 sm:px-6 flex justify-between items-center">
                                         <div className="text-sm text-gray-500">
                                             Estado: <span className={route.completed ? "text-green-600 font-medium" : "text-yellow-600 font-medium"}>
                                                 {route.completed ? "Completada" : "Activa"}
                                             </span>
                                         </div>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedRoute(route);
+                                                setIsDetailsOpen(true);
+                                            }}
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        >
+                                            Ver Detalles
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -158,6 +193,18 @@ export default function RoutesPage() {
                 onClose={() => setIsCreating(false)}
                 busStops={busStops}
                 onCreate={handleCreateRoute}
+                isLoadingBusStops={busStopsLoading}
+            />
+
+            <RouteDetailsModal
+                isOpen={isDetailsOpen}
+                onClose={() => {
+                    setIsDetailsOpen(false);
+                    setSelectedRoute(null);
+                }}
+                route={selectedRoute}
+                busStops={busStops}
+                onUpdate={handleUpdateRoute}
                 isLoadingBusStops={busStopsLoading}
             />
         </div>

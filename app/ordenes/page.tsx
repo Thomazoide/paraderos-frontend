@@ -56,8 +56,11 @@ export default function WorkOrdersPage() {
         try {
             const backendUrl = await GetBackendEndpoint();
             const endpoint = `${backendUrl}${ENDPOINTS.workOrders}`;
+            const ruta = routes.find( (r) => r.id === routeId );
             const payload = JSON.stringify({
-                route_id: routeId
+                creation_date: new Date().toISOString(),
+                route_id: routeId,
+                route: ruta ? ruta : null
             });
             const config = GetRequestConfig(METHODS.POST, "JSON", payload, accessToken!);
             const response: ResponsePayload<WorkOrder> = await (await fetch(endpoint, config)).json();
@@ -156,6 +159,11 @@ export default function WorkOrdersPage() {
                                                 <p className="text-sm text-gray-500">
                                                     Creada: {new Date(order.creation_date).toLocaleDateString()}
                                                 </p>
+                                                {order.route && (
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        Progreso: {order.stops_visited?.length || 0} / {order.route.route_points?.length || 0} paraderos
+                                                    </p>
+                                                )}
                                             </div>
                                             <div className="flex items-center">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.completada ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>

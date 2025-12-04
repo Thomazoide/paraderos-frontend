@@ -48,6 +48,7 @@ export default function ParaderosPage() {
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const placesMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const searchCenterMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const PlaceLibraryRef = useRef<typeof google.maps.places.Place>(null);
   const AdvancedMarkerElementRef = useRef<typeof google.maps.marker.AdvancedMarkerElement>(null);
   const PinElementRef = useRef<typeof google.maps.marker.PinElement>(null);
@@ -152,7 +153,7 @@ export default function ParaderosPage() {
     markersRef.current.forEach(marker => marker.map = null);
     markersRef.current = [];
 
-    busStops.forEach(stop => {
+    busStopsRef.current.forEach(stop => {
       const visited = isVisitedRecently(stop);
       
       // Create a pin element
@@ -202,11 +203,32 @@ export default function ParaderosPage() {
     const center = locationOverride || mapInstance.current.getCenter();
     if (!center) return;
 
+    // Place a marker at the search center if it's a manual click search
+    if (locationOverride && AdvancedMarkerElementRef.current && PinElementRef.current) {
+      if (searchCenterMarkerRef.current) {
+        searchCenterMarkerRef.current.map = null;
+      }
+
+      const pin = new PinElementRef.current({
+        background: "#3B82F6", // Blue-500
+        borderColor: "#1E40AF", // Blue-800
+        glyphColor: "#FFFFFF",
+        scale: 1.1,
+      });
+
+      searchCenterMarkerRef.current = new AdvancedMarkerElementRef.current({
+        position: center,
+        map: mapInstance.current,
+        title: "Centro de búsqueda",
+        content: pin.element,
+      });
+    }
+
     const request = {
       fields: ['displayName', 'location', 'formattedAddress', 'id'],
       locationRestriction: {
         center: { lat: center.lat(), lng: center.lng() },
-        radius: 2000, // 2km radius
+        radius: 800, // 800 meters radius
       },
       includedPrimaryTypes: ['bus_stop', 'bus_station'],
       maxResultCount: 20
@@ -268,14 +290,37 @@ export default function ParaderosPage() {
         content: iconImg,
       });
 
+      // Create content for InfoWindow
+      const contentDiv = document.createElement('div');
+      contentDiv.style.color = 'black';
+      
+      const infoHtml = `
+        <h3 style="font-weight: bold;">${place.name}</h3>
+        <p>${place.vicinity}</p>
+        <p style="font-size: 0.8em; color: gray;">Sugerido por Google Places</p>
+      `;
+      
+      const btn = document.createElement('button');
+      btn.textContent = "Agregar este paradero";
+      btn.style.marginTop = "8px";
+      btn.style.backgroundColor = "#2563EB";
+      btn.style.color = "white";
+      btn.style.padding = "6px 12px";
+      btn.style.borderRadius = "4px";
+      btn.style.border = "none";
+      btn.style.cursor = "pointer";
+      btn.style.width = "100%";
+      
+      btn.onclick = () => {
+          handleAddBusStop(place);
+          infoWindow.close();
+      };
+
+      contentDiv.innerHTML = infoHtml;
+      contentDiv.appendChild(btn);
+
       const infoWindow = new google.maps.InfoWindow({
-        content: `
-          <div style="color: black;">
-            <h3 style="font-weight: bold;">${place.name}</h3>
-            <p>${place.vicinity}</p>
-            <p style="font-size: 0.8em; color: gray;">Sugerido por Google Places</p>
-          </div>
-        `
+        content: contentDiv
       });
 
       marker.addListener("click", () => {
@@ -290,22 +335,27 @@ export default function ParaderosPage() {
   useEffect(() => {
     if (!mapInstance.current) return;
 
-    const handleIdle = () => searchNearbyBusStops();
     const handleClick = (e: google.maps.MapMouseEvent) => {
         if (isClickSearchMode && e.latLng) {
             searchNearbyBusStops(e.latLng);
         }
     };
 
-    const idleListener = mapInstance.current.addListener("idle", handleIdle);
     const clickListener = mapInstance.current.addListener("click", handleClick);
 
     return () => {
-        google.maps.event.removeListener(idleListener);
         google.maps.event.removeListener(clickListener);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapInstance.current, isClickSearchMode]);
+
+  // Cleanup search marker when mode is disabled
+  useEffect(() => {
+    if (!isClickSearchMode && searchCenterMarkerRef.current) {
+      searchCenterMarkerRef.current.map = null;
+      searchCenterMarkerRef.current = null;
+    }
+  }, [isClickSearchMode]);
 
   const handleCenterMap = (location: google.maps.LatLng) => {
     if (mapInstance.current) {
@@ -340,7 +390,9 @@ export default function ParaderosPage() {
       setSuccess(`Paradero ${newStop.description} agregado correctamente.`);
       setSuccessAdding(true);
       if (data.data) {
-        setBusStops([...busStops, data.data]);
+        const newData = data.data;
+        setBusStops(prev => [...prev, newData]);
+        busStopsRef.current = [...busStopsRef.current, newData];
         setNearbyPlaces(prev => prev.filter(p => p.place_id !== place.place_id));
       }
       
@@ -376,7 +428,9 @@ export default function ParaderosPage() {
       setSuccess(`Paradero ${newStop.description} creado correctamente.`);
       setSuccessAdding(true);
       if (data.data) {
-        setBusStops([...busStops, data.data]);
+        const newData = data.data;
+        setBusStops(prev => [...prev, newData]);
+        busStopsRef.current = [...busStopsRef.current, newData];
         setManualForm({ codigo: '', description: '', lat: '', lng: '' });
       }
       
