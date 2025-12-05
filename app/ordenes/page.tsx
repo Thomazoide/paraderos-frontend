@@ -7,7 +7,7 @@ import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
 import { WorkOrder, Route } from "@/types/entities";
 import { ResponsePayload } from "@/types/response-payload";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { FastTokenCheck, GetBackendEndpoint } from "@/utils/utilities";
 import { Plus, CheckCircle, Clock, AlertCircle, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -48,9 +48,10 @@ export default function WorkOrdersPage() {
 
     useEffect(() => {
         if (accessToken) {
+            FastTokenCheck(accessToken);
             fetchData();
         }
-    }, [accessToken]);
+    }, []);
 
     const handleCreateWorkOrder = async (routeId: number) => {
         try {

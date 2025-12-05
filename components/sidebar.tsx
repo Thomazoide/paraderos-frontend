@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MapPin, FileText, ClipboardList, Menu, X, LogOut, User, Users, Route } from "lucide-react";
+import { LayoutDashboard, MapPin, FileText, ClipboardList, Menu, X, LogOut, User, Users, Route, UserCog } from "lucide-react";
 import { UserType } from "@/types/entities";
 
 interface SidebarProps {
@@ -21,10 +21,11 @@ export default function Sidebar({ fullName, userType, onLogout }: SidebarProps) 
   const allMenuItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Paraderos", href: "/paraderos", icon: MapPin, roles: ["terreno", "jefatura", "oferente"] },
-    { name: "Registros", href: "/registros", icon: FileText, roles: ["jefatura", "oferente"] },
+    /*{ name: "Registros", href: "/registros", icon: FileText, roles: ["jefatura", "oferente"] },*/
     { name: "Órdenes de Trabajo", href: "/ordenes", icon: ClipboardList, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Usuarios", href: "/usuarios", icon: Users, roles: ["jefatura", "oferente"] },
-    { name: "Rutas", href: "/rutas", icon: Route, roles: ["jefatura", "oferente"] }
+    { name: "Rutas", href: "/rutas", icon: Route, roles: ["jefatura", "oferente"] },
+    { name: "Mi cuenta", href: "/mi-cuenta", icon: UserCog, roles: ["terreno", "jefatura", "oferente"]}
   ];
 
   const menuItems = allMenuItems.filter(item => item.roles.includes(userType));
@@ -70,6 +71,7 @@ export default function Sidebar({ fullName, userType, onLogout }: SidebarProps) 
               <p className="text-sm font-medium text-gray-900 truncate" title={fullName}>{fullName}</p>
               <p className="text-xs text-gray-500 capitalize">{userType}</p>
             </div>
+            
           </div>
         </div>
 
