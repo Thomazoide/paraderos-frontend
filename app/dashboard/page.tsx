@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { User, WorkOrder, VisitForm, BusStop } from "@/types/entities";
@@ -34,6 +34,7 @@ export default function Dashboard() {
   const PinElementRef = useRef<typeof google.maps.marker.PinElement>(null);
 
   useEffect(() => {
+    if(accessToken) rejectSession(router, accessToken);
     if (!authLoading) {
       if (!user) {
         router.push("/");

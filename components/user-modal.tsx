@@ -52,6 +52,12 @@ export default function UserModal({ isOpen, onClose, userToEdit, onSave }: UserM
             if (userToEdit && !dataToSend.password) {
                 delete dataToSend.password;
             }
+
+            // If creating, remove username so backend generates it
+            if (!userToEdit) {
+                delete dataToSend.username;
+            }
+
             await onSave(dataToSend);
             onClose();
         } catch (error) {
@@ -95,6 +101,7 @@ export default function UserModal({ isOpen, onClose, userToEdit, onSave }: UserM
                                                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                                             />
                                         </div>
+                                        {userToEdit && (
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
                                             <input
@@ -105,6 +112,7 @@ export default function UserModal({ isOpen, onClose, userToEdit, onSave }: UserM
                                                 onChange={(e) => setFormData({...formData, username: e.target.value})}
                                             />
                                         </div>
+                                        )}
                                         {!userToEdit && (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700">

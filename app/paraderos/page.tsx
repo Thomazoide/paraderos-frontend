@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { BusStop } from "@/types/entities";
@@ -92,6 +92,7 @@ export default function ParaderosPage() {
     };
 
     if (user && accessToken) {
+      rejectSession(router, accessToken);
       fetchData();
     }
   }, [user, accessToken]);

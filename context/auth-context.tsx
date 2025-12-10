@@ -8,6 +8,7 @@ import { VerifyTokenPayload } from "@/types/request-payloads";
 import { ResponsePayload } from "@/types/response-payload";
 import { GetBackendEndpoint } from "@/utils/utilities";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: Partial<User> | null;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Partial<User> | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   const checkForStoredKeys = async () => {
     const storedToken = localStorage.getItem(ACCESS_TOKEN);
@@ -72,13 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(ACCESS_TOKEN, token);
     localStorage.setItem(USER_DATA, JSON.stringify(userData));
   };
-
   const logout = () => {
     setAccessToken(null);
     setUser(null);
     localStorage.removeItem(ACCESS_TOKEN);
     localStorage.removeItem(USER_DATA);
+    router.push("/");
   };
+  
 
   return (
     <AuthContext.Provider

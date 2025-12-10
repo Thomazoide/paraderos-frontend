@@ -8,9 +8,10 @@ import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
 import { Route, BusStop } from "@/types/entities";
 import { ResponsePayload } from "@/types/response-payload";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { Plus, Map } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RoutesPage() {
     const { user, logout, accessToken } = useAuth();
@@ -27,6 +28,8 @@ export default function RoutesPage() {
     // Details state
     const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+    const router = useRouter();
 
     const fetchRoutes = async () => {
         setLoading(true);
@@ -62,6 +65,7 @@ export default function RoutesPage() {
 
     useEffect(() => {
         if(accessToken && user) {
+            rejectSession(router, accessToken);
             fetchRoutes();
         }
     }, [accessToken, user]);

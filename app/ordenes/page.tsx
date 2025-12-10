@@ -7,10 +7,11 @@ import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
 import { WorkOrder, Route } from "@/types/entities";
 import { ResponsePayload } from "@/types/response-payload";
-import { FastTokenCheck, GetBackendEndpoint } from "@/utils/utilities";
+import { FastTokenCheck, GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { Plus, CheckCircle, Clock, AlertCircle, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function WorkOrdersPage() {
     const { user, logout, accessToken } = useAuth();
@@ -19,6 +20,7 @@ export default function WorkOrdersPage() {
     const [errorFetching, setErrorFetching] = useState<Error | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [isCreating, setIsCreating] = useState(false);
+    const router = useRouter();
 
     const fetchData = async () => {
         setLoading(true);
@@ -48,7 +50,7 @@ export default function WorkOrdersPage() {
 
     useEffect(() => {
         if (accessToken) {
-            FastTokenCheck(accessToken);
+            rejectSession(router, accessToken);
             fetchData();
         }
     }, []);

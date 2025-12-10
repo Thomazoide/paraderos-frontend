@@ -8,8 +8,9 @@ import { useAuth } from "@/context/auth-context";
 import { User } from "@/types/entities";
 import { ApiKeyRequestPayload, ResponsePayload } from "@/types/response-payload";
 import { initGoogleMaps } from "@/utils/google-maps";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { FastTokenCheck, GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { Edit, List, Map as MapIcon, Plus, Trash2, User as UserIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function UsersPage() {
@@ -37,6 +38,7 @@ export default function UsersPage() {
     const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
     const AdvancedMarkerElementRef = useRef<typeof google.maps.marker.AdvancedMarkerElement>(null);
     const PinElementRef = useRef<typeof google.maps.marker.PinElement>(null);
+    const router = useRouter();
 
     const fetchUsers = async () => {
         try{
@@ -73,6 +75,7 @@ export default function UsersPage() {
 
     useEffect(() => {
         if(accessToken) {
+            rejectSession(router, accessToken);
             fetchUsers();
             fetchApiKey();
         }
@@ -166,8 +169,8 @@ export default function UsersPage() {
         try {
             const backendUrl = await GetBackendEndpoint();
             let endpoint = "";
-            let method = METHODS.POST;
-            let body = { ...userData };
+            const method = METHODS.POST;
+            const body = { ...userData };
 
             if (editingUser) {
                 endpoint = `${backendUrl}${ENDPOINTS.userUpdate}`;

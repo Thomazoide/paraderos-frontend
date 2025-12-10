@@ -6,7 +6,7 @@ import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { User } from "@/types/entities";
 import { LoginPayload } from "@/types/request-payloads";
 import { ResponsePayload } from "@/types/response-payload";
-import { GetBackendEndpoint } from "@/utils/utilities";
+import { FastTokenCheck, GetBackendEndpoint } from "@/utils/utilities";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
@@ -17,13 +17,11 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const { login, user } = useAuth();
+  const { login, accessToken } = useAuth();
   const username = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);
 
-  const navigate = useRouter();
-
-  useEffect(() => {} , [])
+  const router = useRouter();
 
   const Login = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,10 +48,16 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if(user){
-      navigate.push("/dashboard");
+    if(accessToken){
+      const checkToken = async () => {
+        const isValid = await FastTokenCheck(accessToken);
+        if(isValid){
+          router.push("/dashboard");
+        }
+      };
+      checkToken();
     }
-  }, [user]);
+  }, [accessToken, router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 sm:px-6 lg:px-8">
