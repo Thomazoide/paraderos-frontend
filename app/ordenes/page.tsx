@@ -77,6 +77,31 @@ export default function WorkOrdersPage() {
         }
     };
 
+    const handleTakeOrder = async (orderId: number) => {
+        if (!user?.id) return;
+        try {
+            const backendUrl = await GetBackendEndpoint();
+            const endpoint = `${backendUrl}${ENDPOINTS.workOrders}`;
+            
+            // We send the ID and the new user_id to update the order
+            const payload = JSON.stringify({
+                id: orderId,
+                user_id: user.id,
+                user_final: user
+            });
+            
+            const config = GetRequestConfig(METHODS.POST, "JSON", payload, accessToken!);
+            const response: ResponsePayload<WorkOrder> = await (await fetch(endpoint, config)).json();
+            
+            if(response.error) throw new Error(response.message);
+            
+            fetchData(); // Refresh list
+            alert("Orden asignada correctamente.");
+        } catch (err) {
+            alert("Error al tomar la orden: " + (err as Error).message);
+        }
+    };
+
     const totalOrders = workOrders.length;
     const completedOrders = workOrders.filter(wo => wo.completada).length;
     const incompleteOrders = totalOrders - completedOrders;
@@ -94,24 +119,26 @@ export default function WorkOrdersPage() {
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     <div className="mb-6 flex justify-between items-center">
                         <h1 className="text-2xl font-semibold text-gray-900">Órdenes de trabajo</h1>
-                        {hasRoutes ? (
-                            <button 
-                                onClick={() => setIsCreating(true)}
-                                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus size={20} />
-                                Crear Orden
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-md border border-amber-200">
-                                <AlertCircle size={20} />
-                                <span className="text-sm font-medium">
-                                    No hay rutas creadas.{" "}
-                                    <Link href="/rutas" className="underline hover:text-amber-800">
-                                        Ir a Rutas
-                                    </Link>
-                                </span>
-                            </div>
+                        {user?.user_type !== 'terreno' && (
+                            hasRoutes ? (
+                                <button 
+                                    onClick={() => setIsCreating(true)}
+                                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                                >
+                                    <Plus size={20} />
+                                    Crear Orden
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-md border border-amber-200">
+                                    <AlertCircle size={20} />
+                                    <span className="text-sm font-medium">
+                                        No hay rutas creadas.{" "}
+                                        <Link href="/rutas" className="underline hover:text-amber-800">
+                                            Ir a Rutas
+                                        </Link>
+                                    </span>
+                                </div>
+                            )
                         )}
                     </div>
 
@@ -168,10 +195,23 @@ export default function WorkOrdersPage() {
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="flex items-center">
+                                            <div className="flex items-center gap-2">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.completada ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                     {order.completada ? 'Completada' : 'Pendiente'}
                                                 </span>
+                                                {user?.user_type === 'terreno' && !order.completada && order.user_id !== user.id && (
+                                                    <button
+                                                        onClick={() => handleTakeOrder(order.id)}
+                                                        className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        Tomar Orden
+                                                    </button>
+                                                )}
+                                                {user?.user_type === 'terreno' && !order.completada && order.user_id === user.id && (
+                                                    <span className="text-xs text-blue-600 font-medium border border-blue-200 bg-blue-50 px-2 py-1 rounded">
+                                                        Asignada a ti
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </li>
