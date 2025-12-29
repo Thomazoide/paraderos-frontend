@@ -7,7 +7,7 @@ import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
 import { WorkOrder, Route } from "@/types/entities";
 import { ResponsePayload } from "@/types/response-payload";
-import { FastTokenCheck, GetBackendEndpoint, rejectSession } from "@/utils/utilities";
+import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { Plus, CheckCircle, Clock, AlertCircle, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

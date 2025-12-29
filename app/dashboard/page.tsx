@@ -11,6 +11,7 @@ import { ResponsePayload, ApiKeyRequestPayload } from "@/types/response-payload"
 import StatusMessageBox from "@/components/status-message-box";
 import Sidebar from "@/components/sidebar";
 import { initGoogleMaps } from "@/utils/google-maps";
+import TerrainUserListComponent from "@/components/terrain-user-list";
 
 export default function Dashboard() {
   const { user, accessToken, loading: authLoading, logout } = useAuth();
@@ -131,13 +132,14 @@ export default function Dashboard() {
     busStopMarkersRef.current = [];
 
     // Filter users type "terreno"
-    const terrenoUsers = users.filter(u => u.user_type === "terreno" && u.lat && u.lng);
+    const terrenoUsers = users.filter(u => u.user_type === "terreno");
+    console.log(terrenoUsers)
 
     terrenoUsers.forEach(u => {
       if (u.lat && u.lng) {
         // Create a pin element with initial
         const pin = new PinElementRef.current!({
-            glyph: u.username.substring(0, 1).toUpperCase(),
+            glyph: `#${(u.id).toString()}`,
             background: "#3B82F6", // Blue
             borderColor: "#FFFFFF",
             glyphColor: "#FFFFFF",
@@ -225,6 +227,26 @@ export default function Dashboard() {
     { label: "Formularios Completados", value: visitForms.filter(f => f.completed).length, color: "bg-indigo-500" },
   ];
 
+  const centerMap = ( coords: {
+    lat: number;
+    lng: number;
+    zoom: number | undefined;
+  } ) => {
+    if(!mapInstance.current) return;
+    if(typeof mapInstance.current.panTo === "function"){
+      mapInstance.current.panTo({
+        lat: coords.lat,
+        lng: coords.lng,
+      });
+    } else {
+      mapInstance.current.setCenter({
+        lat: coords.lat,
+        lng: coords.lng
+      });
+    }
+    mapInstance.current.setZoom(coords.zoom ?? 15);
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar 
@@ -266,7 +288,7 @@ export default function Dashboard() {
 
         {/* Map Section */}
         <div className="bg-white shadow rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Ubicación de Usuarios en Terreno</h2>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Ubicación de Paraderos y Usuarios en Terreno</h2>
           <div 
             ref={mapRef} 
             className="w-full h-[500px] rounded-lg border border-gray-200"
@@ -275,6 +297,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity or Lists could go here */}
+        { users && <TerrainUserListComponent users={users} onCenter={centerMap} />}
         
         {error && (
           <StatusMessageBox 

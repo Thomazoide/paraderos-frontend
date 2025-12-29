@@ -28,3 +28,11 @@ export async function rejectSession(router: AppRouterInstance, token: string) {
         router.push("/");
     }
 }
+
+export function formatDate(isoString: string): string {
+    const date = new Date(isoString).toLocaleDateString("CL", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+    return date;
+}
