@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/sidebar";
 import CreateWorkOrderModal from "@/components/create-work-order-modal";
+import WorkOrderDetailsModal from "@/components/work-order-details-modal";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
@@ -20,6 +21,7 @@ export default function WorkOrdersPage() {
     const [errorFetching, setErrorFetching] = useState<Error | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [detailsOrder, setDetailsOrder] = useState<WorkOrder | null>(null);
     const router = useRouter();
 
     const fetchData = async () => {
@@ -199,6 +201,14 @@ export default function WorkOrdersPage() {
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.completada ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                     {order.completada ? 'Completada' : 'Pendiente'}
                                                 </span>
+                                                {user?.user_type !== 'terreno' && order.user_id !== null && (
+                                                    <button
+                                                        onClick={() => setDetailsOrder(order)}
+                                                        className="bg-white text-blue-700 border border-blue-200 px-3 py-1 rounded text-xs hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        Ver detalles
+                                                    </button>
+                                                )}
                                                 {user?.user_type === 'terreno' && !order.completada && order.user_id !== user.id && (
                                                     <button
                                                         onClick={() => handleTakeOrder(order.id)}
@@ -226,6 +236,11 @@ export default function WorkOrdersPage() {
                 onClose={() => setIsCreating(false)}
                 routes={routes}
                 onCreate={handleCreateWorkOrder}
+            />
+            <WorkOrderDetailsModal
+                isOpen={!!detailsOrder}
+                onClose={() => setDetailsOrder(null)}
+                order={detailsOrder}
             />
         </div>
     );
