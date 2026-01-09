@@ -11,11 +11,14 @@ import { jwtDecode, JwtPayload } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
+import { AUTH_USERNAME } from "@/constants/misc";
 
 export default function Home() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [saveAuthData, setSaveAuthData] = useState<boolean>(false);
+  const [savedUsername, setSavedUsername] = useState<string>("");
 
   const { login, accessToken } = useAuth();
   const username = useRef<HTMLInputElement>(null);
@@ -40,6 +43,9 @@ export default function Home() {
         const userData: JwtPayload & Partial<User> = jwtDecode(response.data);
         login(response.data, userData as User);
       }
+      if(saveAuthData){
+        localStorage.setItem(AUTH_USERNAME, body.username);
+      }
     } catch (err) {
       setError(err as Error);
     } finally {
@@ -56,6 +62,10 @@ export default function Home() {
         }
       };
       checkToken();
+    }
+    const authData = localStorage.getItem(AUTH_USERNAME);
+    if(authData){
+      setSavedUsername(authData);
     }
   }, [accessToken, router]);
 
@@ -89,6 +99,8 @@ export default function Home() {
                   ref={username}
                   required
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={savedUsername}
+                  onChange={(e) => setSavedUsername(e.target.value)}
                 />
               </div>
             </div>
@@ -120,6 +132,7 @@ export default function Home() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  onChange={ () => setSaveAuthData(!saveAuthData) }
                 />
                 <label
                   htmlFor="remember-me"

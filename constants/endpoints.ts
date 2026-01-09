@@ -1,5 +1,5 @@
 export const ENDPOINTS = {
-    authLogin: "/auth/v1/login", // POST
+    authLogin: "/auth/v2/login", // POST
     authVerifyToken: "/auth/v1/verificar-token", // POST
     busStops: "/paraderos/v1", // solo GET y POST
     busStopFindOrDelete: (id: number) => `/paraderos/v1/find/${id}`, // solo GET o DELETE
@@ -17,9 +17,9 @@ export const ENDPOINTS = {
     routeByID: (id: number) => `/rutas/v1/find/${id}`, // GET
     routeByOrderID: (id: number) => `/rutas/v1/orden/${id}`, // GET
     users: "/usuarios/v1", // GET
-    userCreate: "/usuarios/v1/registrar", // POST
+    userCreate: "/usuarios/v2/registrar", // POST
     userUpdate: "/usuarios/v1/actualizar", // POST
-    userChangePassword: "/usuarios/actualizar/clave", // POST
+    userChangePassword: "/usuarios/v2/actualizar/clave", // POST
     visitForms: "/formularios/v1", // GET
     visitFormCreate: "/formularios/v1/crear", // POST
     visitFormFinish: (id: number) => `/formularios/v1/cerrar/${id}`, // POST
