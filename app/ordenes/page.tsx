@@ -57,7 +57,7 @@ export default function WorkOrdersPage() {
         }
     }, []);
 
-    const handleCreateWorkOrder = async (routeId: number) => {
+    const handleCreateWorkOrder = async (routeId: number, userId: number) => {
         try {
             const backendUrl = await GetBackendEndpoint();
             const endpoint = `${backendUrl}${ENDPOINTS.workOrders}`;
@@ -65,8 +65,9 @@ export default function WorkOrdersPage() {
             const payload = JSON.stringify({
                 creation_date: new Date().toISOString(),
                 route_id: routeId,
-                route: ruta ? ruta : null
-            });
+                route: ruta ? ruta : null,
+                user_id: userId
+            } as Partial<WorkOrder>);
             const config = GetRequestConfig(METHODS.POST, "JSON", payload, accessToken!);
             const response: ResponsePayload<WorkOrder> = await (await fetch(endpoint, config)).json();
             

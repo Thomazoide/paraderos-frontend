@@ -1,31 +1,56 @@
-import { Route } from "@/types/entities";
+import { ENDPOINTS } from "@/constants/endpoints";
+import { ACCESS_TOKEN } from "@/constants/misc";
+import { GetRequestConfig, METHODS } from "@/constants/request-config";
+import { Route, User } from "@/types/entities";
+import { ResponsePayload } from "@/types/response-payload";
+import { GetBackendEndpoint } from "@/utils/utilities";
 import { useState, useEffect } from "react";
 
 interface CreateWorkOrderModalProps {
     isOpen: boolean;
     onClose: () => void;
     routes: Route[];
-    onCreate: (routeId: number) => Promise<void>;
+    onCreate: (routeId: number, userId: number) => Promise<void>;
 }
 
 export default function CreateWorkOrderModal({ isOpen, onClose, routes, onCreate }: CreateWorkOrderModalProps) {
     const [selectedRouteId, setSelectedRouteId] = useState<number | "">("");
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [terrainUsers, setTerrainUsers] = useState<User[]>([]);
+    const [selectedUserID, setSelectedUserID] = useState<number | "">("");
 
-    // Reset selection when modal opens
     useEffect(() => {
         if (isOpen) {
             setSelectedRouteId("");
+            GetTerrainUsers();
         }
     }, [isOpen]);
 
     if (!isOpen) return null;
 
+    const GetTerrainUsers = async () => {
+        try{
+            setLoading(true);
+            const accessToken = localStorage.getItem(ACCESS_TOKEN);
+            if(!accessToken) throw new Error("Sin token de acceso");
+            const endpoint = `${await GetBackendEndpoint()}${ENDPOINTS.users}`;
+            const response = await (await fetch(endpoint, GetRequestConfig(METHODS.GET, "JSON", undefined, accessToken))).json() as ResponsePayload<User[]>;
+            if(response.error) throw new Error(response.message);
+            const tUsers = response.data!.filter( u => u.user_type === "terreno" );
+            if(tUsers.length < 1) throw new Error("Sin usuarios en terreno creados");
+            setTerrainUsers(tUsers);
+        } catch(err) {
+            alert(err instanceof Error ? err.message : "Error desconocido");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const handleSave = async () => {
         if (selectedRouteId === "") return;
         setLoading(true);
         try {
-            await onCreate(Number(selectedRouteId));
+            await onCreate(Number(selectedRouteId), Number(selectedUserID));
             onClose();
         } catch (error) {
             console.error(error);
@@ -70,8 +95,29 @@ export default function CreateWorkOrderModal({ isOpen, onClose, routes, onCreate
                                             </select>
                                         )}
                                     </div>
+                                    <div className="mt-1">
+                                        {
+                                            terrainUsers &&
+                                            <select
+                                            id="user-select"
+                                            name="user-select"
+                                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border"
+                                            value={selectedUserID}
+                                            onChange={(e) => setSelectedUserID(Number(e.target.value))}
+                                            >
+                                                <option value="" disabled>Selecciona un usuario</option>
+                                                {
+                                                    terrainUsers.map( u  => (
+                                                        <option key={u.id} value={u.id}>
+                                                            Usuario: {u.full_name ?? u.id}
+                                                        </option>
+                                                    ))
+                                                }
+                                            </select>
+                                        }
+                                    </div>
                                     <p className="text-sm text-gray-500 mt-2">
-                                        Selecciona la ruta que se asignará a esta orden de trabajo.
+                                        Selecciona un usuario y la ruta que se asignará a esta orden de trabajo.
                                     </p>
                                 </div>
                             </div>

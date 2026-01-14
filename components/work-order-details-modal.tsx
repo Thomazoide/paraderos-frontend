@@ -33,7 +33,6 @@ export default function WorkOrderDetailsModal({ isOpen, onClose, order }: WorkOr
         const backendUrl = await GetBackendEndpoint();
         const config = GetRequestConfig(METHODS.GET, "JSON", undefined, accessToken);
 
-        // Fetch all bus stops (used to map names/codes and filter visited)
         const stopsRes = await fetch(`${backendUrl}${ENDPOINTS.busStops}`, config);
         const stopsData: ResponsePayload<BusStop[]> = await stopsRes.json();
         if (!stopsData.error && stopsData.data) {
@@ -42,34 +41,47 @@ export default function WorkOrderDetailsModal({ isOpen, onClose, order }: WorkOr
           setBusStops([]);
         }
 
-        // Fetch related visit forms using route and user when available (union, dedup by id)
-        const formsPromises: Promise<VisitForm[]>[] = [];
-        if (order.route_id) {
-          formsPromises.push(
-            (async () => {
-              const r = await fetch(`${backendUrl}${ENDPOINTS.visitFormByRouteID(order.route_id!)}`, config);
-              const d: ResponsePayload<VisitForm[]> = await r.json();
-              return d.data || [];
-            })()
-          );
-        }
-        if (order.user_id) {
-          formsPromises.push(
-            (async () => {
-              const r = await fetch(`${backendUrl}${ENDPOINTS.visitFormByUserID(order.user_id!)}`, config);
-              const d: ResponsePayload<VisitForm[]> = await r.json();
-              return d.data || [];
-            })()
-          );
-        }
+        let specificOrderForms: VisitForm[] | null = null;
+        try {
+          const orderRes = await fetch(`${backendUrl}${ENDPOINTS.workOrderByID(order.id)}`, config);
+          const orderData: ResponsePayload<WorkOrder> = await orderRes.json();
+          if (!orderData.error && orderData.data && Array.isArray(orderData.data.forms)) {
+            specificOrderForms = orderData.data.forms as VisitForm[];
+          }
+        } catch {}
 
-        const results = await Promise.all(formsPromises);
-        const merged = results.flat();
-        const byId: Record<number, VisitForm> = {};
-        merged.forEach(f => { byId[f.id] = f; });
-        setForms(Object.values(byId));
-      } catch (e: any) {
-        setError(e?.message || "Error al cargar detalles");
+        if (specificOrderForms) {
+          setForms(specificOrderForms);
+        } else {
+          const formsPromises: Promise<VisitForm[]>[] = [];
+          if (order.route_id) {
+            formsPromises.push(
+              (async () => {
+                const r = await fetch(`${backendUrl}${ENDPOINTS.visitFormByRouteID(order.route_id!)}`, config);
+                const d: ResponsePayload<VisitForm[]> = await r.json();
+                return d.data || [];
+              })()
+            );
+          }
+          if (order.user_id) {
+            formsPromises.push(
+              (async () => {
+                const r = await fetch(`${backendUrl}${ENDPOINTS.visitFormByUserID(order.user_id!)}`, config);
+                const d: ResponsePayload<VisitForm[]> = await r.json();
+                return d.data || [];
+              })()
+            );
+          }
+
+          const results = await Promise.all(formsPromises);
+          const merged = results.flat();
+          const filtered = merged.filter(f => f.workOrderId === order.id);
+          const byId: Record<number, VisitForm> = {};
+          filtered.forEach(f => { byId[f.id] = f; });
+          setForms(Object.values(byId));
+        }
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Error al cargar detalles");
       } finally {
         setLoading(false);
       }
