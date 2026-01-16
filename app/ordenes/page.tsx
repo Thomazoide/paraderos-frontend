@@ -30,13 +30,11 @@ export default function WorkOrdersPage() {
             const backendUrl = await GetBackendEndpoint();
             const config = GetRequestConfig(METHODS.GET, "JSON", undefined, accessToken!);
 
-            // Fetch Work Orders
             const woRes = await fetch(`${backendUrl}${ENDPOINTS.workOrders}`, config);
             const woData: ResponsePayload<WorkOrder[]> = await woRes.json();
             if (woData.error) throw new Error(woData.message);
             setWorkOrders(woData.data || []);
 
-            // Fetch Routes
             const routesRes = await fetch(`${backendUrl}${ENDPOINTS.routes}`, config);
             const routesData: ResponsePayload<Route[]> = await routesRes.json();
             if (!routesData.error) {
