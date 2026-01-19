@@ -53,7 +53,14 @@ export default function WorkOrdersPage() {
             rejectSession(router, accessToken);
             fetchData();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if(errorFetching){
+            alert(errorFetching.message);
+        }
+    }, [errorFetching]);
 
     const handleCreateWorkOrder = async (routeId: number, userId: number) => {
         try {
