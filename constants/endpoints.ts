@@ -12,6 +12,7 @@ export const ENDPOINTS = {
     workOrders: "/ordenes/v1", // GET y POST
     workOrderByID: (id: number) => `/ordenes/v1/buscar/${id}`, // GET
     workOrderByRouteID: (id: number) => `/ordenes/v1/ruta/${id}`, // GET
+    workOrdersByUserID: (id: number) => `/ordenes/v1/buscar/usuario/${id}`,
     deleteWorkOrder: (id: number) => `/ordenes/v1/borrar/${id}`, // DELETE
     routes: "/rutas/v1", // GET y POST
     routeByID: (id: number) => `/rutas/v1/find/${id}`, // GET

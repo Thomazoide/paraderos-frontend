@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MapPin, FileText, ClipboardList, Menu, X, LogOut, User, Users, Route, UserCog } from "lucide-react";
+import { LayoutDashboard, MapPin, ClipboardList, Menu, X, LogOut, User, Users, Route, UserCog, LucideProps, Form } from "lucide-react";
 import { UserType } from "@/types/entities";
 
 interface SidebarProps {
@@ -18,13 +18,19 @@ export default function Sidebar({ fullName, userType, onLogout }: SidebarProps) 
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const allMenuItems = [
+  const allMenuItems: {
+    name: string;
+    href: string;
+    icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
+    roles: UserType[];
+  }[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Paraderos", href: "/paraderos", icon: MapPin, roles: ["terreno", "jefatura", "oferente"] },
-    /*{ name: "Registros", href: "/registros", icon: FileText, roles: ["jefatura", "oferente"] },*/
     { name: "Órdenes de Trabajo", href: "/ordenes", icon: ClipboardList, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Usuarios", href: "/usuarios", icon: Users, roles: ["jefatura", "oferente"] },
     { name: "Rutas", href: "/rutas", icon: Route, roles: ["jefatura", "oferente"] },
+    { name: "Mis formularios", href: "/mis-formularios", icon: Form, roles: ["terreno"] },
+    { name: "Formularios de visita", href: "/formularios", icon: Form, roles: ["jefatura", "oferente"] },
     { name: "Mi cuenta", href: "/mi-cuenta", icon: UserCog, roles: ["terreno", "jefatura", "oferente"]}
   ];
 

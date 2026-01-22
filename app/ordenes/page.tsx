@@ -6,13 +6,14 @@ import WorkOrderDetailsModal from "@/components/work-order-details-modal";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { useAuth } from "@/context/auth-context";
-import { WorkOrder, Route } from "@/types/entities";
+import { WorkOrder, Route, User } from "@/types/entities";
 import { ResponsePayload } from "@/types/response-payload";
 import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { Plus, CheckCircle, Clock, AlertCircle, FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { USER_DATA } from "@/constants/misc";
 
 export default function WorkOrdersPage() {
     const { user, logout, accessToken } = useAuth();
@@ -29,8 +30,11 @@ export default function WorkOrdersPage() {
         try {
             const backendUrl = await GetBackendEndpoint();
             const config = GetRequestConfig(METHODS.GET, "JSON", undefined, accessToken!);
-
-            const woRes = await fetch(`${backendUrl}${ENDPOINTS.workOrders}`, config);
+            const userDataStr = localStorage.getItem(USER_DATA);
+            if(!userDataStr) throw new Error("Sin datos de usuario");
+            const userData = JSON.parse(userDataStr) as User;
+            const endpoint = userData.user_type === "terreno" ? `${backendUrl}${ENDPOINTS.workOrdersByUserID(userData.id)}` : `${backendUrl}${ENDPOINTS.workOrders}`;
+            const woRes = await fetch(endpoint, config);
             const woData: ResponsePayload<WorkOrder[]> = await woRes.json();
             if (woData.error) throw new Error(woData.message);
             setWorkOrders(woData.data || []);
