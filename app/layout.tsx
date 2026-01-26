@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+//@ts-expect-error El import de archivos .CSS no está definido en ningún módulo, por lo que arroja error este tipo de imports sin afectar el funcionamiento de la app
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 
@@ -25,13 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </body>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+        </body>
     </html>
   );
 }
