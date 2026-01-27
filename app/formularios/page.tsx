@@ -122,7 +122,7 @@ export default function Forms() {
                                             <p className="text-gray-600">Órden de trabajo #{f.workOrderId}</p>
                                             <p className="text-gray-600">Creada el: {formatDate(f.creation_date)}</p>
                                             <p className="text-gray-600">Ruta: {f.route?.route_name}</p>
-                                            <p className="text-gray-600">Paradero #{f.busStop?.description}</p>
+                                            <p className="text-gray-600">Paradero #{f.busStopId} - {f.busStop?.description}</p>
                                             <p className="text-gray-600">Creada por: {f.user?.full_name}</p>
                                         </div>
                                         <div className="flex flex-col" >
