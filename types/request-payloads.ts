@@ -6,3 +6,7 @@ export interface LoginPayload {
 export interface VerifyTokenPayload {
     token: string;
 }
+
+export interface ReportFileRequest {
+    fileURL: string;
+}

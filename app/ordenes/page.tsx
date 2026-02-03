@@ -83,7 +83,7 @@ export default function WorkOrdersPage() {
             if(response.error) throw new Error(response.message);
             
             setIsCreating(false);
-            fetchData(); // Refresh list
+            fetchData(); 
         } catch (err) {
             alert("Error al crear la orden de trabajo: " + (err as Error).message);
         }
@@ -95,7 +95,6 @@ export default function WorkOrdersPage() {
             const backendUrl = await GetBackendEndpoint();
             const endpoint = `${backendUrl}${ENDPOINTS.workOrders}`;
             
-            // We send the ID and the new user_id to update the order
             const payload = JSON.stringify({
                 id: orderId,
                 user_id: user.id,
@@ -107,7 +106,7 @@ export default function WorkOrdersPage() {
             
             if(response.error) throw new Error(response.message);
             
-            fetchData(); // Refresh list
+            fetchData(); 
             alert("Orden asignada correctamente.");
         } catch (err) {
             alert("Error al tomar la orden: " + (err as Error).message);
@@ -154,7 +153,6 @@ export default function WorkOrdersPage() {
                         )}
                     </div>
 
-                    {/* Stats Section */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                         <StatCard
                             title="Total Órdenes"
@@ -176,7 +174,6 @@ export default function WorkOrdersPage() {
                         />
                     </div>
 
-                    {/* List Section */}
                     <div className="bg-white shadow rounded-lg overflow-hidden">
                         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
                             <h3 className="text-lg leading-6 font-medium text-gray-900">

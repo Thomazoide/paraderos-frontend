@@ -1,3 +1,5 @@
+import { SinceDate } from "./misc";
+
 export const ENDPOINTS = {
     authLogin: "/auth/v2/login", // POST
     authVerifyToken: "/auth/v1/verificar-token", // POST
@@ -25,5 +27,8 @@ export const ENDPOINTS = {
     visitFormCreate: "/formularios/v1/crear", // POST
     visitFormFinish: (id: number) => `/formularios/v1/cerrar/${id}`, // POST
     visitFormByRouteID: (id: number) => `/formularios/v1/ruta/${id}`, // GET
-    visitFormByUserID: (id: number) => `/formularios/v1/usuario/${id}` // GET
+    visitFormByUserID: (id: number) => `/formularios/v1/usuario/${id}`, // GET
+    getReports: "/reportes/v1", // GET para obtebner todos los reportes existentes y POST para obtener solo uno
+    generateReport: (sinceDate: SinceDate, userID: number) => `/reportes/v1/generar/${sinceDate}/${userID}`, //GET
+    getReport: "/reportes/v1/descargar" //POST 
 }

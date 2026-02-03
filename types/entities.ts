@@ -84,3 +84,12 @@ export interface WorkOrder {
     user_final: User | null;
     forms: VisitForm[] | null;
 };
+
+export interface Report {
+    id: number;
+    fileURL: string;
+    userId: string;
+    createdAt: string;
+    userName: string;
+    reportType: string;
+};

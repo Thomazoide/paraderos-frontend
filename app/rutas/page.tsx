@@ -22,10 +22,8 @@ export default function RoutesPage() {
     const [loading, setLoading] = useState<boolean>(true);
     const [busStopsLoading, setBusStopsLoading] = useState<boolean>(false);
     
-    // Creation state
     const [isCreating, setIsCreating] = useState(false);
     
-    // Details state
     const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -90,10 +88,10 @@ export default function RoutesPage() {
             if(response.error) throw new Error(response.message);
             
             setIsCreating(false);
-            fetchRoutes(); // Refresh list
+            fetchRoutes(); 
         } catch (err) {
             alert("Error al crear la ruta: " + (err as Error).message);
-            throw err; // Re-throw to let modal know it failed
+            throw err; 
         }
     };
 
@@ -113,7 +111,7 @@ export default function RoutesPage() {
             
             setIsDetailsOpen(false);
             setSelectedRoute(null);
-            fetchRoutes(); // Refresh list
+            fetchRoutes(); 
         } catch (err) {
             alert("Error al actualizar la ruta: " + (err as Error).message);
         }
