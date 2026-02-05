@@ -55,7 +55,7 @@ importers:
         specifier: ^19
         version: 19.2.3(@types/react@19.2.7)
       baseline-browser-mapping:
-        specifier: ^2.9.19
+        specifier: 2.9.19
         version: 2.9.19
       eslint:
         specifier: ^9
@@ -1829,6 +1829,10 @@ packages:
 
   baseline-browser-mapping@2.9.19:
     resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
+    hasBin: true
+
+  baseline-browser-mapping@2.9.3:
+    resolution: {integrity: sha512-8QdH6czo+G7uBsNo0GiUfouPN1lRzKdJTGnKXwe12gkFbnnOUaUKGN55dMkfy+mnxmvjwl9zcI4VncczcVXDhA==}
     hasBin: true
 
   brace-expansion@1.1.12:
@@ -5650,6 +5654,8 @@ snapshots:
 
   baseline-browser-mapping@2.9.19: {}
 
+  baseline-browser-mapping@2.9.3: {}
+
   brace-expansion@1.1.12:
     dependencies:
       balanced-match: 1.0.2
@@ -5665,7 +5671,7 @@ snapshots:
 
   browserslist@4.28.0:
     dependencies:
-      baseline-browser-mapping: 2.9.19
+      baseline-browser-mapping: 2.9.3
       caniuse-lite: 1.0.30001757
       electron-to-chromium: 1.5.261
       node-releases: 2.0.27

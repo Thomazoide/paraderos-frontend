@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { GetBackendEndpoint, rejectSession } from "@/utils/utilities";
+import { formatDate, GetBackendEndpoint, rejectSession } from "@/utils/utilities";
 import { ENDPOINTS } from "@/constants/endpoints";
 import { GetRequestConfig, METHODS } from "@/constants/request-config";
 import { BusStop } from "@/types/entities";
@@ -32,7 +32,7 @@ export default function ParaderosPage() {
   const [error, setError] = useState<Error | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [addingStop, setAddingStop] = useState<string | null>(null); // place_id being added
+  const [addingStop, setAddingStop] = useState<string | null>(null); 
   const [successAdding, setSuccessAdding] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'suggested' | 'manual'>('suggested');
   const [manualForm, setManualForm] = useState({
@@ -43,6 +43,7 @@ export default function ParaderosPage() {
   });
   const [creatingManual, setCreatingManual] = useState(false);
   const [isClickSearchMode, setIsClickSearchMode] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<{lat: string, lng: string}>()
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
@@ -53,6 +54,10 @@ export default function ParaderosPage() {
   const AdvancedMarkerElementRef = useRef<typeof google.maps.marker.AdvancedMarkerElement>(null);
   const PinElementRef = useRef<typeof google.maps.marker.PinElement>(null);
   const busStopsRef = useRef<BusStop[]>([]);
+
+  useEffect(() => {
+    if(!mapInstance.current) return;
+  }, []);
 
   useEffect(() => {
     busStopsRef.current = busStops;
@@ -72,12 +77,10 @@ export default function ParaderosPage() {
         setLoadingData(true);
         const backendUrl = await GetBackendEndpoint();
 
-        // Fetch Google API Key
         const keyRes = await fetch("/api/get-google-api-key");
         const keyData: ApiKeyRequestPayload = await keyRes.json();
         if (keyData.apiKey) setApiKey(keyData.apiKey);
 
-        // Fetch Bus Stops
         const stopsRes = await fetch(`${backendUrl}${ENDPOINTS.busStops}`, GetRequestConfig(METHODS.GET, "JSON", undefined, accessToken));
         const stopsData: ResponsePayload<BusStop[]> = await stopsRes.json();
 
@@ -95,9 +98,9 @@ export default function ParaderosPage() {
       rejectSession(router, accessToken);
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, accessToken]);
 
-  // Load Map
   useEffect(() => {
     const init = async () => {
       if (apiKey && !loadingData && mapRef.current && !mapInstance.current) {
@@ -118,7 +121,7 @@ export default function ParaderosPage() {
           mapInstance.current = new Map(mapRef.current, {
             center: puenteAlto,
             zoom: 13,
-            mapId: "DEMO_MAP_ID", // Required for AdvancedMarkerElement
+            mapId: "DEMO_MAP_ID", 
           });
 
           updateMarkers();
@@ -133,7 +136,6 @@ export default function ParaderosPage() {
   }, [apiKey, loadingData]);
 
   const isVisitedRecently = (stop: BusStop) => {
-    // Check if visited in the last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -150,14 +152,12 @@ export default function ParaderosPage() {
   const updateMarkers = () => {
     if (!mapInstance.current || !AdvancedMarkerElementRef.current || !PinElementRef.current) return;
 
-    // Clear existing markers
     markersRef.current.forEach(marker => marker.map = null);
     markersRef.current = [];
 
     busStopsRef.current.forEach(stop => {
       const visited = isVisitedRecently(stop);
       
-      // Create a pin element
       const pin = new PinElementRef.current!({
         background: visited ? "#10B981" : "#EF4444",
         borderColor: "#FFFFFF",
@@ -204,15 +204,14 @@ export default function ParaderosPage() {
     const center = locationOverride || mapInstance.current.getCenter();
     if (!center) return;
 
-    // Place a marker at the search center if it's a manual click search
     if (locationOverride && AdvancedMarkerElementRef.current && PinElementRef.current) {
       if (searchCenterMarkerRef.current) {
         searchCenterMarkerRef.current.map = null;
       }
 
       const pin = new PinElementRef.current({
-        background: "#3B82F6", // Blue-500
-        borderColor: "#1E40AF", // Blue-800
+        background: "#3B82F6", 
+        borderColor: "#1E40AF", 
         glyphColor: "#FFFFFF",
         scale: 1.1,
       });
@@ -229,7 +228,7 @@ export default function ParaderosPage() {
       fields: ['displayName', 'location', 'formattedAddress', 'id'],
       locationRestriction: {
         center: { lat: center.lat(), lng: center.lng() },
-        radius: 800, // 800 meters radius
+        radius: 800, 
       },
       includedPrimaryTypes: ['bus_stop', 'bus_station'],
       maxResultCount: 20
@@ -248,7 +247,6 @@ export default function ParaderosPage() {
         const newPlaces = places.filter((place) => {
           if (!place.location) return false;
           
-          // Check if any existing bus stop is very close (e.g., within 20 meters)
           return !busStopsRef.current.some(stop => {
             const distance = google.maps.geometry.spherical.computeDistanceBetween(
               new google.maps.LatLng(stop.lat, stop.lng),
@@ -290,8 +288,6 @@ export default function ParaderosPage() {
         title: place.name,
         content: iconImg,
       });
-
-      // Create content for InfoWindow
       const contentDiv = document.createElement('div');
       contentDiv.style.color = 'black';
       
@@ -350,7 +346,6 @@ export default function ParaderosPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapInstance.current, isClickSearchMode]);
 
-  // Cleanup search marker when mode is disabled
   useEffect(() => {
     if (!isClickSearchMode && searchCenterMarkerRef.current) {
       searchCenterMarkerRef.current.map = null;
@@ -462,7 +457,7 @@ export default function ParaderosPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Map Section */}
+            {/* Seccion del mapa */}
             <div className="lg:col-span-2 bg-white shadow rounded-lg p-4 relative">
               <div className="absolute top-6 right-6 z-10 flex flex-col gap-2">
                 <button
@@ -619,9 +614,6 @@ export default function ParaderosPage() {
                         />
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Tip: Puedes hacer clic derecho en el mapa para copiar las coordenadas (funcionalidad pendiente de implementar).
-                    </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <button
@@ -680,9 +672,9 @@ export default function ParaderosPage() {
                         {stop.lat.toFixed(5)}, {stop.lng.toFixed(5)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {isVisitedRecently(stop) ? (
+                        {stop.lastVisited ? (
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Visitado
+                            Visitado el {formatDate(stop.lastVisited)}
                           </span>
                         ) : (
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">

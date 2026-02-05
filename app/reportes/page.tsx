@@ -8,7 +8,7 @@ import { ResponsePayload } from "@/types/response-payload";
 import { ReportFileRequest } from "@/types/request-payloads";
 import { GetBackendEndpoint } from "@/utils/utilities";
 import { useEffect, useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Shredder } from "lucide-react";
 import type { SinceDate } from "@/constants/misc";
 import Sidebar from "@/components/sidebar";
 
@@ -33,6 +33,7 @@ export default function ReportsPage() {
     }
     useEffect(() => {
         GetReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -87,7 +88,7 @@ export default function ReportsPage() {
                     }
                     byteArrays.push(new Uint8Array(byteNumbers));
                 }
-                //@ts-ignore
+                //@ts-expect-error Error de tipo marcado, pero sin error al compilar ni ejecutar el programa
                 const blob = new Blob(byteArrays, { type: mime });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -99,15 +100,14 @@ export default function ReportsPage() {
                 URL.revokeObjectURL(url);
             };
 
-            // Derivar nombre de archivo desde fileURL si es posible
             let filename = `reporte-${Date.now()}.csv`;
             try {
                 const parsed = new URL(fileURL);
                 const parts = parsed.pathname.split('/').filter(Boolean);
                 const last = parts[parts.length - 1];
                 if (last) filename = last;
-            } catch (_) {
-                // fileURL might not be a full URL; fallback to default
+            } catch (e) {
+                alert(e instanceof Error ? e.message : "Error desconocido...");
             }
 
             downloadBase64File(base64String, filename);
@@ -117,6 +117,21 @@ export default function ReportsPage() {
             alert((e as Error).message || "Error al descargar el reporte");
         }
     };
+
+    const handleDelete = async (reportID: number) => {
+        try {
+            if(!accessToken) throw new Error("Sin token de acceso");
+            const endpoint = `${await GetBackendEndpoint()}${ENDPOINTS.deleteReport(reportID)}`;
+            const reqConfig = GetRequestConfig(METHODS.DELETE, "JSON", undefined, accessToken);
+            const response = await (await fetch(endpoint, reqConfig)).json() as ResponsePayload<boolean>;
+            if(response.error) throw new Error(response.message || "Error desconocido");
+            if(!response.data) throw new Error(response.message || "Error desconocido");
+            alert(response.message);
+            await GetReports();
+        } catch (e) {
+            alert(e instanceof Error ? e.message : "Error desconocido");
+        }
+    }
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -158,14 +173,22 @@ export default function ReportsPage() {
                                             <p className="text-sm text-gray-500">Tipo de reporte: {r.reportType}</p>
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-col items-center gap-2 w-[150px]">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                                                className="inline-flex justify-center w-full hover:cursor-pointer items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                                                 onClick={() => handleDownload(r.fileURL)}
                                             >
                                                 <Download size={14} />
                                                 Descargar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="inline-flex justify-center w-full hover:cursor-pointer items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                                onClick={() => handleDelete(r.id)}
+                                            >
+                                                <Shredder size={14} />
+                                                Eliminar
                                             </button>
                                         </div>
                                     </div>

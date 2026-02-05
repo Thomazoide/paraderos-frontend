@@ -28,7 +28,9 @@ export const ENDPOINTS = {
     visitFormFinish: (id: number) => `/formularios/v1/cerrar/${id}`, // POST
     visitFormByRouteID: (id: number) => `/formularios/v1/ruta/${id}`, // GET
     visitFormByUserID: (id: number) => `/formularios/v1/usuario/${id}`, // GET
+    visitFormPictures: (formID: number) => `/formularios/v2/get-pictures/${formID}`, // GET
     getReports: "/reportes/v1", // GET para obtebner todos los reportes existentes y POST para obtener solo uno
     generateReport: (sinceDate: SinceDate, userID: number) => `/reportes/v1/generar/${sinceDate}/${userID}`, //GET
-    getReport: "/reportes/v1/descargar" //POST 
+    getReport: "/reportes/v1/descargar", // POST 
+    deleteReport: (reportID: number) => `/reportes/v1/eliminar/${reportID}`, // DELETE
 }

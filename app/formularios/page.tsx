@@ -9,10 +9,12 @@ import { formatDate, GetBackendEndpoint } from "@/utils/utilities";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@heroui/react";
+import VisitFormDetailsModal from "@/components/visit-form-details-modal";
 
 export default function Forms() {
     const [forms, setForms] = useState<VisitForm[]>([]);
     const [users, setUsers] = useState<User[]>([]);
+    const [selectedForm, setSelectedForm] = useState<VisitForm>();
     const [loading, setLoading] = useState<boolean>(false);
     const { user, accessToken, logout } = useAuth();
 
@@ -53,6 +55,10 @@ export default function Forms() {
         } finally {
             setLoading(false);
         }
+    }
+
+    const handleVisitFormSelect = (vf: VisitForm) => {
+        setSelectedForm(vf);
     }
     
     useEffect( () => {
@@ -128,7 +134,7 @@ export default function Forms() {
                                         <div className="flex flex-col" >
                                             <p>Estado: <strong className={`${f.completed ? "text-green-500" : "text-orange-500"}`} > { f.completed ? "Completada" : "Pendiente" } </strong> </p>
                                             <p> {f.completed && f.completion_date ? `Completada el: ${formatDate(f.completion_date)}` : ""} </p>
-                                            <Button variant="solid" color="primary" >
+                                            <Button variant="solid" color="primary" onPress={() => handleVisitFormSelect(f)} >
                                                 Ver detalles
                                             </Button>
                                         </div>
@@ -140,6 +146,12 @@ export default function Forms() {
                     </div>
                 </main>
             </div>
+            {selectedForm && <VisitFormDetailsModal 
+                accessToken={accessToken!}
+                isOpen={!!selectedForm}
+                onClose={ () => setSelectedForm(undefined) }
+                visitFormData={selectedForm!}
+            />}
         </div>
     )
 };

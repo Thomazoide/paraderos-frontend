@@ -11,3 +11,8 @@ export interface EndpointRequestPayload {
 export interface ApiKeyRequestPayload {
     apiKey: string | null;
 };
+
+export interface VisitFormPicsResponse {
+    picBefore: string;
+    picAfter: string;
+};

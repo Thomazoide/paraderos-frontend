@@ -9,6 +9,7 @@ export interface BusStop {
     visitForms: VisitForm[] | null;
     entries: Entry[] | null;
     departures: Departure[] | null;
+    lastVisited: string | null;
 };
 
 export interface Entry {

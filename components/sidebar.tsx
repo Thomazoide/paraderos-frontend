@@ -3,7 +3,7 @@
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, MapPin, ClipboardList, Menu, X, LogOut, User, Users, Route, UserCog, LucideProps, Form, File } from "lucide-react";
+import { LayoutDashboard, MapPin, ClipboardList, Menu, X, LogOut, User, Users, Route, UserCog, LucideProps, Form, FileText } from "lucide-react";
 import { UserType } from "@/types/entities";
 
 interface SidebarProps {
@@ -27,7 +27,7 @@ export default function Sidebar({ fullName, userType, onLogout }: SidebarProps) 
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Paraderos", href: "/paraderos", icon: MapPin, roles: ["terreno", "jefatura", "oferente"] },
     { name: "Órdenes de Trabajo", href: "/ordenes", icon: ClipboardList, roles: ["terreno", "jefatura", "oferente"] },
-    { name: "Reportes", href: "/reportes", icon: File, roles: ["jefatura", "oferente"] },
+    { name: "Reportes", href: "/reportes", icon: FileText, roles: ["jefatura", "oferente"] },
     { name: "Usuarios", href: "/usuarios", icon: Users, roles: ["jefatura", "oferente"] },
     { name: "Rutas", href: "/rutas", icon: Route, roles: ["jefatura", "oferente"] },
     { name: "Formularios de visita", href: "/formularios", icon: Form, roles: ["jefatura", "oferente", "terreno"] },
