@@ -8,7 +8,7 @@ import { ResponsePayload } from "@/types/response-payload";
 import { formatDate, GetBackendEndpoint } from "@/utils/utilities";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@heroui/react";
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, Spinner } from "@heroui/react";
 import VisitFormDetailsModal from "@/components/visit-form-details-modal";
 
 export default function Forms() {
@@ -48,7 +48,6 @@ export default function Forms() {
             const response = await (await fetch(endpoint, reqConfig)).json() as ResponsePayload<User[]>;
             if(response.error) throw new Error(response.message || "error desconocido");
             const terrainUsers = response.data!.filter((u) => u.user_type === "terreno");
-            console.log(terrainUsers);
             setUsers(terrainUsers);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Error desconocido");
@@ -61,10 +60,16 @@ export default function Forms() {
         setSelectedForm(vf);
     }
     
+    useEffect(() => {
+        const refetchFormsInterval = setInterval(() => fetchForms(), 5000);
+        console.log("refetching forms...");
+        return () => clearInterval(refetchFormsInterval);
+    // eslint-disable-next-line
+    }, []);
+
     useEffect( () => {
-        fetchForms();
         if(user?.user_type !== "terreno") fetchTerrainUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
     }, [] );
 
     return(
@@ -77,10 +82,7 @@ export default function Forms() {
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                     <div className="flex flex-row gap-5 border rounded-xl border-gray-300 shadow w-full h-fit p-4">
-                        {
-                            loading ?
-                            <p className="text-2xl font-bold text-gray-400" >Cargando...</p> 
-                            :
+                        
                             <> 
                             
                             <input className="w-full border border-gray-400 shadow shadow-gray-400 p-2 rounded-xl outline-0" type="text" placeholder="Filtrar formularios" />
@@ -108,12 +110,11 @@ export default function Forms() {
                                 null
                             }
                             </>
-                        }
                     </div>
                     <div className="flex flex-col gap-4 item-center rounded-xl border border-gray-300 bg-blend-difference  shadow-md w-full h-fit overflow-y-auto p-4 my-5">
                         {
                             loading ?
-                            <p className=""></p>
+                            <Spinner color="primary" size="lg" />
                             :
                             forms.length < 1 ?
                             <p className="text-2xl font-bold">
